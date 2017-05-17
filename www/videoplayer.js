@@ -1,3 +1,4 @@
+cordova.define("com.moust.cordova.videoplayer.VideoPlayer", function(require, exports, module) {
 var exec = require("cordova/exec");
 
 module.exports = {
@@ -17,6 +18,14 @@ module.exports = {
         exec(successCallback, errorCallback, "VideoPlayer", "play", [path, options]);
     },
 
+    getCurrentPosition: function (successCallback, errorCallback) {
+        return exec(successCallback, errorCallback, "VideoPlayer", "getCurrentPosition", []);
+    },
+
+    getDuration: function (successCallback, errorCallback) {
+        return exec(successCallback, errorCallback, "VideoPlayer", "getDuration", []);
+    },
+
     close: function (successCallback, errorCallback) {
         exec(successCallback, errorCallback, "VideoPlayer", "close", []);
     },
@@ -32,3 +41,5 @@ module.exports = {
     }
 
 };
+
+});

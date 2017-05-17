@@ -42,14 +42,15 @@ public class VideoPlayer extends CordovaPlugin implements OnCompletionListener, 
     private VideoView videoView;
 
     private MediaPlayer player;
+    private Integer duration = -1;
 
     /**
      * Executes the request and returns PluginResult.
      *
-     * @param action        The action to execute.
-     * @param args          JSONArray of arguments for the plugin.
-     * @param callbackId    The callback id used when calling back into JavaScript.
-     * @return              A PluginResult object with a status and message.
+     * @param action             The action to execute.
+     * @param args               JSONArray of arguments for the plugin.
+     * @param callbackContext    The callback id used when calling back into JavaScript.
+     * @return                   A PluginResult object with a status and message.
      */
     public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
         if (action.equals("play")) {
@@ -84,6 +85,22 @@ public class VideoPlayer extends CordovaPlugin implements OnCompletionListener, 
             callbackContext.sendPluginResult(pluginResult);
             callbackContext = null;
 
+            return true;
+        }
+        else if (action.equals("getCurrentPosition")) {
+            this.callbackContext = callbackContext;
+            PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, new Integer(player.getCurrentPosition()).toString());
+            pluginResult.setKeepCallback(true);
+            callbackContext.sendPluginResult(pluginResult);
+            callbackContext = null;
+            return true;
+        }
+        else if (action.equals("getDuration")) {
+            this.callbackContext = callbackContext;
+            PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, duration.toString());
+            pluginResult.setKeepCallback(true);
+            callbackContext.sendPluginResult(pluginResult);
+            callbackContext = null;
             return true;
         }
         else if (action.equals("close")) {
@@ -248,12 +265,15 @@ public class VideoPlayer extends CordovaPlugin implements OnCompletionListener, 
         }
         mp.release();
         dialog.dismiss();
+        duration = -1;
         return false;
     }
 
     @Override
     public void onPrepared(MediaPlayer mp) {
         mp.start();
+        duration = player.getDuration();
+        Log.d(LOG_TAG, "MediaPlayer started");
     }
 
     @Override
@@ -261,6 +281,7 @@ public class VideoPlayer extends CordovaPlugin implements OnCompletionListener, 
         Log.d(LOG_TAG, "MediaPlayer completed");
         mp.release();
         dialog.dismiss();
+        duration = -1;
     }
 
     @Override
