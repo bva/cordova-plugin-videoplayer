@@ -25,6 +25,14 @@ Stop and close a video currently playing without waiting the end.
 ```
 VideoPlayer.close();
 ```
+Get duration of video in milliseconds.
+```
+VideoPlayer.getDuration(callback);
+```
+Get position of currently playing video.
+```
+VideoPlayer.getCurrentPosition(callback);
+```
 
 The plugin is able to play file-path or http/rtsp URL.
 
@@ -50,6 +58,12 @@ VideoPlayer.play(
     },
     function (err) {
         console.log(err);
+    }
+);
+
+VideoPlayer.getCurrentPosition(
+    function(currentPosition) {
+        console.log("Current position: " + currentPosition);
     }
 );
 ```
