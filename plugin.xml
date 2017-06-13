@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    id="com.moust.cordova.videoplayer"
-    version="1.0.2">
+<plugin xmlns:android="http://schemas.android.com/apk/res/android"
+    id="com.moust.cordova.videoplayer" version="1.0.3"
+    xmlns="http://apache.org/cordova/ns/plugins/1.0">
 
     <name>Video Player</name>
     <description>Native Video Player Plugin</description>
@@ -11,24 +10,27 @@
     <repo>https://github.com/bva/cordova-plugin-videoplayer.git</repo>
     <issue>https://github.com/bva/cordova-plugin-videoplayer/issues</issue>
 
-    <js-module src="www/videoplayer.js" name="VideoPlayer">
+    <js-module name="VideoPlayer" src="www/videoplayer.js">
         <clobbers target="VideoPlayer" />
     </js-module>
 
     <platform name="android">
 
-        <config-file target="res/xml/config.xml" parent="/*">
+        <config-file parent="/*" target="res/xml/config.xml">
             <feature name="VideoPlayer">
-                <param name="android-package" value="com.moust.cordova.videoplayer.VideoPlayer"/>
+                <param name="android-package" value="com.moust.cordova.videoplayer.VideoPlayer" />
             </feature>
         </config-file>
-        <config-file target="AndroidManifest.xml" parent="/manifest/application">
-            <activity android:label="Video Player Activity" android:name="com.moust.cordova.videoplayer.VideoPlayerActivity"/>
+        <config-file parent="/manifest/application" target="AndroidManifest.xml">
+            <activity android:name="com.moust.cordova.videoplayer.VideoPlayerActivity"
+                android:label="Video Player Activity" />
         </config-file>
         <config-file parent="/*" target="AndroidManifest.xml"></config-file>
-        <source-file src="src/android/VideoPlayer.java" target-dir="src/com/moust/cordova/videoplayer" />
-        <source-file src="src/android/VideoPlayerActivity.java" target-dir="src/com/moust/cordova/videoplayer" />
-        <source-file src="src/android/video_player_activity.xml" target-dir="res/layout"/>
+        <source-file src="src/android/VideoPlayer.java"
+            target-dir="src/com/moust/cordova/videoplayer" />
+        <source-file src="src/android/VideoPlayerActivity.java"
+            target-dir="src/com/moust/cordova/videoplayer" />
+        <source-file src="src/android/video_player_activity.xml" target-dir="res/layout" />
     </platform>
 
 </plugin>
