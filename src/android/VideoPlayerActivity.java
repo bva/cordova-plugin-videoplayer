@@ -184,7 +184,7 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnCompl
         response_intent.putExtra("event", "prepared");
         localBroadcastManager.sendBroadcast(response_intent);
 
-        mp.start();
+        start();
         Log.d(LOG_TAG, "MediaPlayer prepared");
     }
 
