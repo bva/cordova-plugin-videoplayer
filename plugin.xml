@@ -14,8 +14,9 @@
         <clobbers target="VideoPlayer" />
     </js-module>
 
-    <platform name="android">
+    <dependency id="cordova-plugin-android-support-v4" />
 
+    <platform name="android">
         <config-file parent="/*" target="res/xml/config.xml">
             <feature name="VideoPlayer">
                 <param name="android-package" value="com.moust.cordova.videoplayer.VideoPlayer" />
@@ -23,6 +24,8 @@
         </config-file>
         <config-file parent="/manifest/application" target="AndroidManifest.xml">
             <activity android:name="com.moust.cordova.videoplayer.VideoPlayerActivity"
+	        android:screenOrientation="landscape"
+                android:configChanges="orientation|keyboardHidden|screenSize"
                 android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
         </config-file>
         <config-file parent="/*" target="AndroidManifest.xml"/>
