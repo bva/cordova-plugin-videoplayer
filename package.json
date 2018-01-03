@@ -1,19 +1,14 @@
 {
   "name": "cordova-plugin-videoplayer",
-  "version": "1.0.2",
+  "version": "1.0.5",
   "description": "A Codova plugin that simply allows you to immediately play a video in fullscreen mode.",
   "cordova": {
     "id": "cordova-plugin-videoplayer",
-    "platforms": [
-      "android",
-      "ios"
-    ]
+    "platforms": [ "android" ]
   },
   "engines": {
     "cordovaDependencies": {
-      "2.0.0": {
-        "cordova": ">100"
-      }
+      "1.0.0": { "cordova-android": "6.2.3" }
     }
   },
   "scripts": {
