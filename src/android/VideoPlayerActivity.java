@@ -40,7 +40,7 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnCompl
                 response_intent.putExtra("duration", getDuration());
                 localBroadcastManager.sendBroadcast(response_intent);
             } else if(action.equals("close")) {
-                videoView.setMediaController(null)
+                videoView.setMediaController(null);
 
                 if(videoView.isPlaying()) {
                     videoView.stopPlayback();
