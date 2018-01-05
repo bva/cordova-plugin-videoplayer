@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.widget.MediaController;
 import android.widget.VideoView;
+import android.widget.View;
 
 import org.apache.cordova.PluginResult;
 
@@ -40,11 +41,16 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnCompl
                 response_intent.putExtra("duration", getDuration());
                 localBroadcastManager.sendBroadcast(response_intent);
             } else if(action.equals("close")) {
-                videoView.setMediaController(null);
+		if(videoView != null) {
+                    videoView.setVisibility(View.GONE);
 
-                if(videoView.isPlaying()) {
-                    videoView.stopPlayback();
-                }
+		    try {
+			videoView.release();
+                        videoView = null;
+		    } catch(Exception e) {
+			Log.d(LOG_TAG, "Exception in close", e);
+		    }
+		}
 
                 response_intent.putExtra("action", "play");
                 response_intent.putExtra("event", "closed");
@@ -201,4 +207,3 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnCompl
         localBroadcastManager.sendBroadcast(response_intent);
     }
 }
-
