@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.MediaFormat;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
@@ -16,6 +17,9 @@ import android.widget.VideoView;
 import android.widget.View;
 
 import org.apache.cordova.PluginResult;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class VideoPlayerActivity extends Activity implements MediaPlayer.OnCompletionListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaController.MediaPlayerControl {
     private static final String LOG_TAG = VideoPlayerActivity.class.getSimpleName();
@@ -41,16 +45,16 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnCompl
                 response_intent.putExtra("duration", getDuration());
                 localBroadcastManager.sendBroadcast(response_intent);
             } else if(action.equals("close")) {
-		if(videoView != null) {
+		        if(videoView != null) {
                     videoView.setVisibility(View.GONE);
 
-		    try {
-			videoView.release();
+		            try {
+			            videoView.release();
                         videoView = null;
-		    } catch(Exception e) {
-			Log.d(LOG_TAG, "Exception in close", e);
-		    }
-		}
+		            } catch(Exception e) {
+			            Log.d(LOG_TAG, "Exception in close", e);
+		            }
+		        }
 
                 response_intent.putExtra("action", "play");
                 response_intent.putExtra("event", "closed");
@@ -78,6 +82,7 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnCompl
         videoView.setOnPreparedListener(this);
         videoView.setOnCompletionListener(this);
         videoView.setOnErrorListener(this);
+        videoView.setOnInfoListener(this);
 
         Intent intent = getIntent();
         videoView.setVideoPath(intent.getStringExtra("url"));
@@ -187,9 +192,32 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnCompl
             }
         }
 
+        MediaPlayer.TrackInfo[] trackInfoArray = mp.getTrackInfo();
+        JSONObject event = new JSONObject();
+
+        try {
+            event.put("event", "prepared");
+            JSONArray audio_tracks = new JSONArray();
+
+            for (int j = 0; j < trackInfoArray.length; j++) {
+                if (trackInfoArray[i].getTrackType() == MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_AUDIO) {
+                    JSONObject audio_track = new JSONObject();
+                    audio_track.put("index", i);
+                    audio_track.put("lang", trackInfoArray[i].getFormat().getString(MediaFormat.KEY_LANGUAGE));
+                    audio_track.put("mime", trackInfoArray[i].getFormat().getString(MediaFormat.KEY_MIME));
+                    audio_tracks.put(audio_track);
+                }
+            }
+
+            event.put("audio_tracks", audio_tracks);
+        } catch(JSONException e) {
+            Log.e(LOG_TAG, "MediaPlayer JSON exception", e);
+        }
+
         Intent response_intent = new Intent(VideoPlayer.class.getSimpleName());
         response_intent.putExtra("action", "play");
         response_intent.putExtra("event", "prepared");
+        response_intent.putExtra("payload", event.toString());
         localBroadcastManager.sendBroadcast(response_intent);
 
         start();

@@ -26,7 +26,9 @@ public class VideoPlayer extends CordovaPlugin {
         public void onReceive(Context context, Intent intent) {
 
             String action = intent.getStringExtra("action");
-            Log.d(LOG_TAG, "Message received: " + action);
+            String payload = intent.getStringExtra("payload");
+
+            Log.d(LOG_TAG, "Message received: " + action + ", payload: " + payload);
 
             if (action.equals("play")) {
                 String event = intent.getStringExtra("event");
@@ -38,7 +40,12 @@ public class VideoPlayer extends CordovaPlugin {
                     pluginResult = new PluginResult(PluginResult.Status.ERROR, intent.getStringExtra("error"));
                     pluginResult.setKeepCallback(false);
                 } else {
-                    pluginResult = new PluginResult(PluginResult.Status.OK, event);
+                    if(payload != null) {
+                        pluginResult = new PluginResult(PluginResult.Status.OK, payload);
+                    } else {
+                        pluginResult = new PluginResult(PluginResult.Status.OK, event);
+                    }
+
                     pluginResult.setKeepCallback(true);
                 }
 
@@ -70,6 +77,12 @@ public class VideoPlayer extends CordovaPlugin {
         localBroadcastManager.registerReceiver(messageReceiver, new IntentFilter(this.getClass().getSimpleName()));
     }
 
+    private void sendBroadcast(String action) {
+        Intent intent = new Intent(VideoPlayerActivity.class.getSimpleName());
+        intent.putExtra("action", action);
+        localBroadcastManager.sendBroadcast(intent);
+    }
+
     /**
      * Executes the request and returns PluginResult.
      *
@@ -99,26 +112,19 @@ public class VideoPlayer extends CordovaPlugin {
         }
         else if (action.equals("getCurrentPosition")) {
             this.callbackContext = callbackContext;
-
-            Intent intent = new Intent(VideoPlayerActivity.class.getSimpleName());
-            intent.putExtra("action", action);
-            localBroadcastManager.sendBroadcast(intent);
+            sendBroadcast(action);
             return true;
         }
         else if (action.equals("getDuration")) {
             this.callbackContext = callbackContext;
 
-            Intent intent = new Intent(VideoPlayerActivity.class.getSimpleName());
-            intent.putExtra("action", action);
-            localBroadcastManager.sendBroadcast(intent);
+            sendBroadcast(action);
             return true;
         }
         else if (action.equals("close")) {
             this.callbackContext = callbackContext;
 
-            Intent intent = new Intent(VideoPlayerActivity.class.getSimpleName());
-            intent.putExtra("action", action);
-            localBroadcastManager.sendBroadcast(intent);
+            sendBroadcast(action);
             return true;
         }
 
