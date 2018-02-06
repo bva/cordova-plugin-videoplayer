@@ -15,10 +15,15 @@ cordova plugin add com.moust.cordova.videoplayer
 
 # Using
 
-Just call the  `play` method with a video file path as argument. The video player will close itself when the video will be completed.
+Just call the  `load` method with a video file path as argument, and then `start`. The video player will close itself when the video will be completed.
 
 ```
-VideoPlayer.play(path, [options], [completeCallback], [errorCallback]);
+VideoPlayer.load(path, [options], [completeCallback], [errorCallback]);
+```
+
+Start playing video.
+```
+VideoPlayer.start();
 ```
 
 Stop and close a video currently playing without waiting the end.
@@ -33,6 +38,10 @@ Get position of currently playing video.
 ```
 VideoPlayer.getCurrentPosition(callback);
 ```
+Select audio track.
+```
+VideoPlayer.selectAudioTracle(index);
+```
 
 The plugin is able to play file-path or http/rtsp URL.
 
@@ -43,7 +52,8 @@ You can also add an error callback function to handle unexpected playback errors
 ## Example
 
 ```javascript
-VideoPlayer.play("file:///android_asset/www/movie.mp4");
+VideoPlayer.load("file:///android_asset/www/movie.mp4");
+VideoPlayer.start();
 ```
 
 ```javascript
@@ -53,8 +63,17 @@ VideoPlayer.play(
         volume: 0.5,
         scalingMode: VideoPlayer.SCALING_MODE.SCALE_TO_FIT_WITH_CROPPING
     },
-    function () {
-        console.log("video completed");
+    function (evt) {
+	try {
+		event = JSON.parse(event);
+	} catch(e) {}
+
+	if(event.event == 'prepared') {
+		VideoPlayer.selectAudioTrack(event.audio_tracks[0].index);
+	        VideoPlayer.start();
+	}
+
+        console.log("Event: " + evt);
     },
     function (err) {
         console.log(err);

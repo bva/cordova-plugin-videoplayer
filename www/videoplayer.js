@@ -12,9 +12,17 @@ module.exports = {
         SCALE_TO_FIT_WITH_CROPPING: 2
     },
 
-    play: function (path, options, successCallback, errorCallback) {
+    load: function (path, options, successCallback, errorCallback) {
         options = this.merge(this.DEFAULT_OPTIONS, options);
-        exec(successCallback, errorCallback, "VideoPlayer", "play", [path, options]);
+        exec(successCallback, errorCallback, "VideoPlayer", "load", [path, options]);
+    },
+
+    start: function () {
+        exec(null, null, "VideoPlayer", "start", []);
+    },
+
+    selectAudioTrack: function (i, successCallback, errorCallback) {
+        exec(null, null, "VideoPlayer", "selectAudioTrack", [i]);
     },
 
     getCurrentPosition: function (successCallback, errorCallback) {

@@ -11,22 +11,20 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.view.SurfaceHolder;
 import android.widget.MediaController;
 import android.widget.VideoView;
-import android.widget.View;
 
-import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class VideoPlayerActivity extends Activity implements MediaPlayer.OnCompletionListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaController.MediaPlayerControl {
+public class VideoPlayerActivity extends Activity implements MediaPlayer.OnCompletionListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaController.MediaPlayerControl, MediaPlayer.OnInfoListener {
     private static final String LOG_TAG = VideoPlayerActivity.class.getSimpleName();
 
     private LocalBroadcastManager localBroadcastManager;
     private VideoView videoView;
     private MediaController controller;
+    private MediaPlayer mp;
 
     private BroadcastReceiver messageReceiver = new BroadcastReceiver() {
         @Override
@@ -41,33 +39,53 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnCompl
                 response_intent.putExtra("currentPosition", getCurrentPosition());
                 localBroadcastManager.sendBroadcast(response_intent);
             }
+            else if(action.equals("selectAudioTrack")) {
+                mp.selectTrack(intent.getExtras().getInt("i"));
+                response_intent.putExtra("action", "play");
+                response_intent.putExtra("event", "audioTrackSelected");
+                localBroadcastManager.sendBroadcast(response_intent);
+            }
+            else if(action.equals("start")) {
+                start();
+            }
             else if(action.equals("getDuration")) {
                 response_intent.putExtra("duration", getDuration());
                 localBroadcastManager.sendBroadcast(response_intent);
             } else if(action.equals("close")) {
-		        if(videoView != null) {
-                    videoView.setVisibility(View.GONE);
+                if (videoView != null) {
+                    videoView.setVisibility(VideoView.GONE);
 
-		            try {
-			            videoView.release();
+                    try {
+                        if (mp != null) {
+                            mp.release();
+                        }
+
+                        mp = null;
                         videoView = null;
-		            } catch(Exception e) {
-			            Log.d(LOG_TAG, "Exception in close", e);
-		            }
-		        }
+                    } catch (Exception e) {
+                        Log.d(LOG_TAG, "Exception in close", e);
+                    }
+                }
 
                 response_intent.putExtra("action", "play");
                 response_intent.putExtra("event", "closed");
                 localBroadcastManager.sendBroadcast(response_intent);
-
                 finish();
             }
         }
     };
 
     @Override
+    protected void onDestroy() {
+        localBroadcastManager.unregisterReceiver(messageReceiver);
+        super.onDestroy();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(LOG_TAG, "VideoPlayer.onCreate");
+
         String package_name = getApplication().getPackageName();
         setContentView(getResources().getIdentifier("video_player_activity", "layout", package_name));
         int id = getResources().getIdentifier("videoview", "id", package_name);
@@ -82,7 +100,6 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnCompl
         videoView.setOnPreparedListener(this);
         videoView.setOnCompletionListener(this);
         videoView.setOnErrorListener(this);
-        videoView.setOnInfoListener(this);
 
         Intent intent = getIntent();
         videoView.setVideoPath(intent.getStringExtra("url"));
@@ -149,8 +166,15 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnCompl
     }
 
     @Override
+    public boolean onInfo(MediaPlayer mp, int what, int extra) {
+        Log.d(LOG_TAG, "MediaPlayer.onInfo(" + what + ", " + extra + ")");
+        return true;
+    }
+
+    @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
         Log.e(LOG_TAG, "MediaPlayer.onError(" + what + ", " + extra + ")");
+
         if(mp.isPlaying()) {
             mp.stop();
         }
@@ -169,6 +193,8 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnCompl
 
     @Override
     public void onPrepared(MediaPlayer mp) {
+        this.mp = mp;
+
         Intent intent = getIntent();
 
         float volume = (float)intent.getDoubleExtra("volume", -1);
@@ -199,12 +225,13 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnCompl
             event.put("event", "prepared");
             JSONArray audio_tracks = new JSONArray();
 
+            Log.d(LOG_TAG, "Tracks count: " + trackInfoArray.length);
+
             for (int j = 0; j < trackInfoArray.length; j++) {
-                if (trackInfoArray[i].getTrackType() == MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_AUDIO) {
+                if (trackInfoArray[j].getTrackType() == MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_AUDIO) {
                     JSONObject audio_track = new JSONObject();
-                    audio_track.put("index", i);
-                    audio_track.put("lang", trackInfoArray[i].getFormat().getString(MediaFormat.KEY_LANGUAGE));
-                    audio_track.put("mime", trackInfoArray[i].getFormat().getString(MediaFormat.KEY_MIME));
+                    audio_track.put("index", j);
+                    audio_track.put("lang", trackInfoArray[j].getLanguage());
                     audio_tracks.put(audio_track);
                 }
             }
@@ -220,7 +247,8 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnCompl
         response_intent.putExtra("payload", event.toString());
         localBroadcastManager.sendBroadcast(response_intent);
 
-        start();
+        mp.setOnInfoListener(this);
+
         Log.d(LOG_TAG, "MediaPlayer prepared");
     }
 

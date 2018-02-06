@@ -9,6 +9,7 @@ import android.content.Intent;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaArgs;
+import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
 import org.json.JSONException;
@@ -39,6 +40,9 @@ public class VideoPlayer extends CordovaPlugin {
                 if (event.equals("error")) {
                     pluginResult = new PluginResult(PluginResult.Status.ERROR, intent.getStringExtra("error"));
                     pluginResult.setKeepCallback(false);
+                } else if (event.equals("closed")) {
+                    pluginResult = new PluginResult(PluginResult.Status.OK, event);
+                    pluginResult.setKeepCallback(false);
                 } else {
                     if(payload != null) {
                         pluginResult = new PluginResult(PluginResult.Status.OK, payload);
@@ -50,11 +54,18 @@ public class VideoPlayer extends CordovaPlugin {
                 }
 
                 playCallbackContext.sendPluginResult(pluginResult);
+
+                if(!pluginResult.getKeepCallback()) {
+                    playCallbackContext = null;
+                }
+
             }
             else if (action.equals("getCurrentPosition")) {
                 Integer position = intent.getIntExtra("currentPosition", -1);
                 Log.d(LOG_TAG, "Position: " + position);
                 PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, position.toString());
+                pluginResult.setKeepCallback(true);
+
                 callbackContext.sendPluginResult(pluginResult);
                 callbackContext = null;
             }
@@ -62,6 +73,8 @@ public class VideoPlayer extends CordovaPlugin {
                 Integer duration = intent.getIntExtra("duration", -1);
                 Log.d(LOG_TAG, "Duration: " + duration);
                 PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, duration.toString());
+                pluginResult.setKeepCallback(true);
+
                 callbackContext.sendPluginResult(pluginResult);
                 callbackContext = null;
             }
@@ -94,20 +107,32 @@ public class VideoPlayer extends CordovaPlugin {
     public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
         Log.d(LOG_TAG, "Execute action: " + action);
 
-        if (action.equals("play")) {
+        if (action.equals("load")) {
             final String target = args.getString(0);
             final JSONObject options = args.getJSONObject(1);
 
             final Activity cordovaActivity = cordova.getActivity();
 
             cordovaActivity.runOnUiThread(new Runnable() {
+                @Override
                 public void run() {
                     openNewActivity(cordovaActivity.getApplicationContext(), target, options);
                 }
-
             });
 
             playCallbackContext = callbackContext;
+            return true;
+        }
+        else if (action.equals("selectAudioTrack")) {
+            final int i = args.getInt(0);
+            Intent intent = new Intent(VideoPlayerActivity.class.getSimpleName());
+            intent.putExtra("action", action);
+            intent.putExtra("i", i);
+            localBroadcastManager.sendBroadcast(intent);
+            return true;
+        }
+        else if (action.equals("start")) {
+            sendBroadcast(action);
             return true;
         }
         else if (action.equals("getCurrentPosition")) {
@@ -122,8 +147,6 @@ public class VideoPlayer extends CordovaPlugin {
             return true;
         }
         else if (action.equals("close")) {
-            this.callbackContext = callbackContext;
-
             sendBroadcast(action);
             return true;
         }
@@ -146,6 +169,6 @@ public class VideoPlayer extends CordovaPlugin {
             return;
         }
 
-        this.cordova.getActivity().startActivity(intent);
+        cordova.getActivity().startActivity(intent);
     }
 }
