@@ -57,7 +57,7 @@ VideoPlayer.start();
 ```
 
 ```javascript
-VideoPlayer.play(
+VideoPlayer.load(
     "file:///android_asset/www/movie.mp4",
     {
         volume: 0.5,
